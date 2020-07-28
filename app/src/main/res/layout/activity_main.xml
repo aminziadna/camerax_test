@@ -6,18 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextureView
-        android:id="@+id/textureView"
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        android:id="@+id/overlay"
+        android:elevation="8dp"
+        android:alpha="0.2"/>
+
     <Button
         android:id="@+id/camera_capture_button"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="50dp"
-        style="@style/Widget.AppCompat.Button.Small"
-        android:elevation="2dp"
+        android:elevation="12dp"
         android:scaleType="fitCenter"
         android:text="Take Photo"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -30,21 +31,21 @@
         android:layout_height="match_parent" />
 
     <ImageView
+        android:id="@+id/imageview_stayhome"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginBottom="50dp"
-        android:elevation="2dp"
-        android:src="@drawable/cover1"
+        android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/camera_capture_button" />
 
     <ImageView
+        android:id="@+id/imageview_newspaper"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginBottom="50dp"
-        android:elevation="2dp"
-        android:src="@drawable/cover2"
+        android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@id/camera_capture_button"
         app:layout_constraintRight_toRightOf="parent" />

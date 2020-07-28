@@ -1,25 +1,15 @@
 package com.updown.onetaptest;
 
-import android.app.Application;
-import android.graphics.BitmapFactory;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
-
-import com.updown.onetaptest.network.request.GetImageRequest;
 import com.updown.onetaptest.network.request.GetOverlayImagesRequest;
 import com.updown.onetaptest.network.response.IResponse;
 import com.updown.onetaptest.network.response.OverlayImagesResponse;
 
-import java.io.File;
+public class CameraViewModel extends ViewModel implements IResponse<OverlayImagesResponse> {
 
-import okhttp3.ResponseBody;
-
-public class CameraViewModel extends AndroidViewModel implements IResponse<OverlayImagesResponse> {
-
-    public CameraViewModel(@NonNull Application application) {
-        super(application);
-    }
+    public MutableLiveData<ImagesData> imagesDataLiveData = new MutableLiveData<>();
 
     public void getImages() {
         new GetOverlayImagesRequest().setListener(this).start();
@@ -27,8 +17,7 @@ public class CameraViewModel extends AndroidViewModel implements IResponse<Overl
 
     @Override
     public void onSuccess(OverlayImagesResponse result) {
-        retrieveImage(result.getNewsPaper().getImageUrl(), 0);
-        retrieveImage(result.getStayHome().getImageUrl(), 1);
+        imagesDataLiveData.postValue(new ImagesData(result.getNewsPaper().getImageUrl(), result.getStayHome().getImageUrl()));
     }
 
     @Override
@@ -36,34 +25,13 @@ public class CameraViewModel extends AndroidViewModel implements IResponse<Overl
 
     }
 
+    class ImagesData {
+        String newsPaperUrl;
+        String stayHomeUrl;
 
-    private void retrieveImage(String imageUrl, int id) {
-        new GetImageRequest(imageUrl).setListener(new IResponse<ResponseBody>() {
-            @Override
-            public void onSuccess(ResponseBody result) {
-                // display the image data in a ImageView or save it
-                BitmapFactory.decodeStream(result.byteStream());
-                File f = getFileToSave();
-                f.
-
-            }
-
-            @Override
-            public void onError(String message, Throwable t) {
-
-            }
-        }).start();
-    }
-
-    private File getFileToSave() {
-        File[] externalMediaDirs = getApplication().getExternalMediaDirs();
-        File mediaDir = null;
-        if (externalMediaDirs != null && externalMediaDirs.length > 0) {
-            mediaDir = new File(externalMediaDirs[0], Constants.FileNameTemplate);
-            mediaDir.mkdir();
+        public ImagesData(String newsPaperUrl, String stayHomeUrl) {
+            this.newsPaperUrl = newsPaperUrl;
+            this.stayHomeUrl = stayHomeUrl;
         }
-        if (mediaDir != null && mediaDir.exists())
-            return mediaDir;
-        else return getApplication().getFilesDir();
     }
 }

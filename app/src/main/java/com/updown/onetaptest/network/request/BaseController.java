@@ -1,5 +1,7 @@
 package com.updown.onetaptest.network.request;
 
+import androidx.annotation.CallSuper;
+
 import com.google.gson.GsonBuilder;
 import com.updown.onetaptest.Constants;
 import com.updown.onetaptest.network.response.IResponse;
@@ -16,12 +18,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public abstract class BaseController<T> implements Callback<T> {
 
     private static Retrofit sRetrofit;
-    private IResponse<T> mListener;
-    private Call<T> mCall;
-
-    private Object mExtra;
-
-    public abstract void start();
 
     static {
 
@@ -37,6 +33,12 @@ public abstract class BaseController<T> implements Callback<T> {
                 .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().setLenient().create()))
                 .build();
     }
+
+    private IResponse<T> mListener;
+    private Call<T> mCall;
+    private Object mExtra;
+
+    public abstract void start();
 
     protected Retrofit buildRetrofit() {
         return sRetrofit;
@@ -76,8 +78,14 @@ public abstract class BaseController<T> implements Callback<T> {
      * @param response
      */
     @Override
-//    @CallSuper
+    @CallSuper
     public void onResponse(Call<T> call, Response<T> response) {
+        if (mListener != null) {
+            if (response.isSuccessful()) {
+                mListener.onSuccess(response.body());
+            } else
+                mListener.onError("Failed to load data", null);
+        }
         mListener = null;
         mCall = null;
     }
@@ -89,8 +97,10 @@ public abstract class BaseController<T> implements Callback<T> {
      * @param t
      */
     @Override
-//    @CallSuper
+    @CallSuper
     public void onFailure(Call<T> call, Throwable t) {
+        if (mListener != null)
+            mListener.onError(t != null ? t.getMessage() : "Failed to load data", t);
         mListener = null;
         mCall = null;
     }

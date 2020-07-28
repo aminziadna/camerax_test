@@ -2,14 +2,20 @@ package com.updown.onetaptest;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.TextureView;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
@@ -21,9 +27,12 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
@@ -43,20 +52,46 @@ public class MainActivity extends AppCompatActivity {
     private ImageAnalysis imageAnalysis = null;
     private Camera camera = null;
     private PreviewView viewFinder;
-    private TextureView textureView;
     private CameraViewModel cameraViewModel;
     private File outputDirectory;
     private ExecutorService cameraExecutor;
+
+    private ImageView newsPaperImageView;
+    private ImageView stayHomeImageView;
+    private ImageView overlayImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        stayHomeImageView = findViewById(R.id.imageview_stayhome);
+        newsPaperImageView = findViewById(R.id.imageview_newspaper);
+        overlayImage = findViewById(R.id.overlay);
+
+        newsPaperImageView.setOnClickListener(v -> {
+            overlayImage.setScaleType(ImageView.ScaleType.FIT_XY);
+            overlayImage.setImageDrawable(newsPaperImageView.getDrawable());
+        });
+        stayHomeImageView.setOnClickListener(v -> {
+            overlayImage.setScaleType(ImageView.ScaleType.FIT_XY);
+            overlayImage.setImageDrawable(stayHomeImageView.getDrawable());
+        });
+
 
         cameraViewModel = ViewModelProviders.of(this).get(CameraViewModel.class);
+        cameraViewModel.imagesDataLiveData.observe(this, new Observer<CameraViewModel.ImagesData>() {
+            @Override
+            public void onChanged(CameraViewModel.ImagesData imagesData) {
+                Glide.with(getBaseContext())
+                        .load(imagesData.newsPaperUrl)
+                        .into(newsPaperImageView);
+                Glide.with(getBaseContext())
+                        .load(imagesData.stayHomeUrl)
+                        .into(stayHomeImageView);
+            }
+        });
         cameraViewModel.getImages();
         viewFinder = findViewById(R.id.viewFinder);
-        textureView = findViewById(R.id.textureView);
 
         if (isAllPermissionsGranted()) {
             startCamera();
@@ -88,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                     preview = new Preview.Builder().build();
 
                     imageCapture = new ImageCapture.Builder().build();
-                    CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
+                    CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT).build();
                     cameraProvider.unbindAll();
                     camera = cameraProvider.bindToLifecycle(MainActivity.this, cameraSelector, preview, imageCapture);
                     preview.setSurfaceProvider(viewFinder.createSurfaceProvider());
@@ -108,8 +143,18 @@ public class MainActivity extends AppCompatActivity {
         imageCapture.takePicture(options, ContextCompat.getMainExecutor(this), new ImageCapture.OnImageSavedCallback() {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+
+                ///out of time -- merge two images into one
+//                Bitmap bottomImage = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
+//                Bitmap topImage = overlayImage.getDrawable().;
+
+//                Canvas comboImage = new Canvas(bottomImage);
+//                comboImage.drawBitmap(topImage, 0f, 0f, null);
+
+                // currently saving image from the camera
                 Uri uri = Uri.fromFile(imageFile);
                 Toast.makeText(getBaseContext(), "Image saved to :" + uri, Toast.LENGTH_LONG).show();
+
             }
 
             @Override
